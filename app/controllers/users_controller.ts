@@ -1,4 +1,5 @@
 import User from '#models/user'
+
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 
@@ -16,7 +17,7 @@ export default class UsersController {
         email: user.email,
       })
     } catch (error) {
-      return response.status(400).json({ message: 'Erro ao criar o usuário', error: error.message })
+      return response.status(400).json({ message: 'Error creating user', error: error.message })
     }
   }
 }
