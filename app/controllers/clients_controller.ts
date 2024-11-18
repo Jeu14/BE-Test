@@ -89,4 +89,51 @@ export default class ClientsController {
       })
     }
   }
+
+  public async update({ params, request, response }: HttpContext) {
+    try {
+      const client = await Client.findOrFail(params.id)
+
+      const clientSchema = schema.create({
+        name: schema.string({ trim: true }, [rules.required(), rules.minLength(3)]),
+        cpf: schema.string({ trim: true }, [
+          rules.required(),
+          rules.regex(/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/),
+        ]),
+      })
+
+      const data = await request.validate({ schema: clientSchema })
+
+      const existingClient = await Client.query()
+        .where('cpf', data.cpf)
+        .whereNot('id', params.id)
+        .first()
+
+      if (existingClient) {
+        return response.status(400).json({
+          message: 'Client CPF already exists',
+        })
+      }
+
+      client.name = data.name
+      client.cpf = data.cpf
+
+      await client.save()
+
+      return response.status(200).json({
+        message: 'Client updated successfully',
+        client: {
+          id: client.id,
+          name: client.name,
+          cpf: client.cpf,
+          user_id: client.userId,
+        },
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error updating client',
+        error: error.message,
+      })
+    }
+  }
 }
