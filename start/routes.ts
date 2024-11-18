@@ -8,3 +8,4 @@ router.post('signup', [UsersController, 'store'])
 router.post('/login', [AuthController, 'login'])
 
 router.post('/store', [ClientsController, 'store'])
+router.get('/index', [ClientsController, 'index'])

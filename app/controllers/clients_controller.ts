@@ -35,4 +35,19 @@ export default class ClientsController {
       })
     }
   }
+
+  public async index({ response }: HttpContext) {
+    try {
+      const clientList = await Client.query()
+        .select('id', 'name', 'cpf', 'user_id')
+        .orderBy('id', 'asc')
+
+      return response.status(200).json(clientList)
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error listing clients',
+        error: error.message,
+      })
+    }
+  }
 }
