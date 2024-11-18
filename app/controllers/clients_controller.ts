@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 import Client from '#models/client'
 import { rules, schema } from '@adonisjs/validator'
+import Sale from '#models/sale'
 
 export default class ClientsController {
   public async store({ request, response }: HttpContext) {
@@ -46,6 +47,44 @@ export default class ClientsController {
     } catch (error) {
       return response.status(400).json({
         message: 'Error listing clients',
+        error: error.message,
+      })
+    }
+  }
+
+  public async show({ params, request, response }: HttpContext) {
+    try {
+      const client = await Client.findOrFail(params.id)
+
+      const month = request.input('month')
+      const year = request.input('year')
+
+      let salesQuery = Sale.query().where('client_id', client.id).orderBy('date', 'desc')
+
+      if (month && year) {
+        salesQuery = salesQuery.whereRaw('MONTH(date) = ? AND YEAR(date) = ?', [month, year])
+      }
+
+      const sales = await salesQuery
+
+      return response.status(200).json({
+        client: {
+          id: client.id,
+          name: client.name,
+          cpf: client.cpf,
+          user_id: client.userId,
+        },
+        sales: sales.map((sale) => ({
+          id: sale.id,
+          quantity: sale.quantity,
+          unit_price: sale.unitPrice,
+          total_price: sale.totalPrice,
+          date: sale.date,
+        })),
+      })
+    } catch (error) {
+      return response.status(404).json({
+        message: 'Client not found',
         error: error.message,
       })
     }

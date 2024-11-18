@@ -9,3 +9,4 @@ router.post('/login', [AuthController, 'login'])
 
 router.post('/store', [ClientsController, 'store'])
 router.get('/index', [ClientsController, 'index'])
+router.get('/show/:id', [ClientsController, 'show'])
