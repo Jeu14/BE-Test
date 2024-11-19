@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { rules, schema } from '@adonisjs/validator'
 
 import Client from '#models/client'
-import { rules, schema } from '@adonisjs/validator'
 import Sale from '#models/sale'
 
 export default class ClientsController {
@@ -132,6 +132,23 @@ export default class ClientsController {
     } catch (error) {
       return response.status(400).json({
         message: 'Error updating client',
+        error: error.message,
+      })
+    }
+  }
+
+  public async delete({ params, response }: HttpContext) {
+    try {
+      const client = await Client.findOrFail(params.id)
+
+      await client.delete()
+
+      return response.status(200).json({
+        message: 'Client and associated sales successfully deleted',
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error deleting client',
         error: error.message,
       })
     }
