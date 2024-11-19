@@ -3,6 +3,8 @@ import { rules, schema } from '@adonisjs/validator'
 
 import Client from '#models/client'
 import Sale from '#models/sale'
+import Phone from '#models/phone'
+import Address from '#models/address'
 
 export default class ClientsController {
   public async store({ request, response }: HttpContext) {
@@ -10,6 +12,15 @@ export default class ClientsController {
       name: schema.string({}, [rules.required()]),
       cpf: schema.string({}, [rules.required(), rules.regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]),
       user_id: schema.number([rules.required()]),
+      phone: schema.string({}, [rules.required(), rules.mobile()]),
+      address: schema.object().members({
+        street: schema.string({}, [rules.required()]),
+        number: schema.string({}, [rules.required()]),
+        city: schema.string({}, [rules.required()]),
+        state: schema.string({}, [rules.required()]),
+        zip_code: schema.string({}, [rules.required(), rules.regex(/^\d{5}-\d{3}$/)]),
+        country: schema.string({}, [rules.required()]),
+      }),
     })
 
     const data = await request.validate({ schema: validationSchema })
@@ -20,14 +31,25 @@ export default class ClientsController {
     }
 
     try {
-      const client = await Client.create(data)
+      const client = await Client.create({
+        name: data.name,
+        cpf: data.cpf,
+        userId: data.user_id,
+      })
+
+      await Phone.create({ number: data.phone, clientId: client.id })
+      await Address.create({ ...data.address, clientId: client.id })
 
       return response.status(201).json({
         message: 'Client registered successfully',
-        id: client.id,
-        name: client.name,
-        cpf: client.cpf,
-        user_id: client.userId,
+        client: {
+          id: client.id,
+          name: client.name,
+          cpf: client.cpf,
+          phone: data.phone,
+          address: data.address,
+          user_id: client.userId,
+        },
       })
     } catch (error) {
       return response.status(400).json({
@@ -39,9 +61,22 @@ export default class ClientsController {
 
   public async index({ response }: HttpContext) {
     try {
-      const clientList = await Client.query()
+      const clients = await Client.query()
+        .preload('phones')
+        .preload('addresses')
         .select('id', 'name', 'cpf', 'user_id')
         .orderBy('id', 'asc')
+
+      const clientList = clients.map((client) => ({
+        id: client.id,
+        name: client.name,
+        cpf: client.cpf,
+        phone: client.phones[0]?.number,
+        address: client.addresses[0]
+          ? `${client.addresses[0].street}, ${client.addresses[0].number} - ${client.addresses[0].city}`
+          : null,
+        userId: client.userId,
+      }))
 
       return response.status(200).json(clientList)
     } catch (error) {
@@ -54,7 +89,11 @@ export default class ClientsController {
 
   public async show({ params, request, response }: HttpContext) {
     try {
-      const client = await Client.findOrFail(params.id)
+      const client = await Client.query()
+        .where('id', params.id)
+        .preload('phones')
+        .preload('addresses')
+        .firstOrFail()
 
       const month = request.input('month')
       const year = request.input('year')
@@ -67,11 +106,26 @@ export default class ClientsController {
 
       const sales = await salesQuery
 
+      const address = client.addresses[0]
+        ? {
+            id: client.addresses[0].id,
+            street: client.addresses[0].street,
+            number: client.addresses[0].number,
+            city: client.addresses[0].city,
+            state: client.addresses[0].state,
+            zipCode: client.addresses[0].zipCode,
+            country: client.addresses[0].country,
+            clientId: client.addresses[0].clientId,
+          }
+        : null
+
       return response.status(200).json({
         client: {
           id: client.id,
           name: client.name,
           cpf: client.cpf,
+          phone: client.phones[0]?.number,
+          address: address,
           user_id: client.userId,
         },
         sales: sales.map((sale) => ({
@@ -92,7 +146,11 @@ export default class ClientsController {
 
   public async update({ params, request, response }: HttpContext) {
     try {
-      const client = await Client.findOrFail(params.id)
+      const client = await Client.query()
+        .where('id', params.id)
+        .preload('phones')
+        .preload('addresses')
+        .firstOrFail()
 
       const clientSchema = schema.create({
         name: schema.string({ trim: true }, [rules.required(), rules.minLength(3)]),
@@ -100,6 +158,15 @@ export default class ClientsController {
           rules.required(),
           rules.regex(/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/),
         ]),
+        phone: schema.string({}, [rules.required(), rules.mobile()]),
+        address: schema.object().members({
+          street: schema.string({}, [rules.required()]),
+          number: schema.string({}, [rules.required()]),
+          city: schema.string({}, [rules.required()]),
+          state: schema.string({}, [rules.required()]),
+          zip_code: schema.string({}, [rules.required(), rules.regex(/^\d{5}-\d{3}$/)]),
+          country: schema.string({}, [rules.required()]),
+        }),
       })
 
       const data = await request.validate({ schema: clientSchema })
@@ -115,8 +182,16 @@ export default class ClientsController {
         })
       }
 
-      client.name = data.name
-      client.cpf = data.cpf
+      client.merge({ name: data.name, cpf: data.cpf })
+      await client.save()
+
+      const phone = client.phones[0] || new Phone()
+      phone.merge({ number: data.phone, clientId: client.id })
+      await phone.save()
+
+      const address = client.addresses[0] || new Address()
+      address.merge({ ...data.address, clientId: client.id })
+      await address.save()
 
       await client.save()
 
@@ -126,6 +201,8 @@ export default class ClientsController {
           id: client.id,
           name: client.name,
           cpf: client.cpf,
+          phone: data.phone,
+          address: data.address,
           user_id: client.userId,
         },
       })
