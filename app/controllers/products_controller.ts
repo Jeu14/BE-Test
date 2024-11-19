@@ -52,4 +52,28 @@ export default class ProductsController {
       })
     }
   }
+
+  public async show({ params, response }: HttpContext) {
+    try {
+      const product = await Product.find(params.id)
+
+      if (!product) {
+        return response.status(404).json({
+          message: 'Product not found',
+        })
+      }
+
+      return response.status(200).json({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Error searching for product',
+        error: error.message,
+      })
+    }
+  }
 }

@@ -16,3 +16,4 @@ router.delete('/delete/:id', [ClientsController, 'delete'])
 
 router.post('/product/store', [ProductsController, 'store'])
 router.get('/product/index', [ProductsController, 'index'])
+router.get('/product/show/:id', [ProductsController, 'show'])
