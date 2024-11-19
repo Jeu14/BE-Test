@@ -44,7 +44,7 @@ export default class ProductsController {
       const products = await Product.query()
         .whereNull('deletedAt')
         .select('id', 'name', 'description', 'price')
-        .orderBy('id', 'asc')
+        .orderBy('name', 'asc')
 
       return response.status(200).json(products)
     } catch (error) {
