@@ -1,7 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { rules, schema } from '@adonisjs/validator'
+import { DateTime } from 'luxon'
 
 import Product from '#models/product'
-import { rules, schema } from '@adonisjs/validator'
 
 export default class ProductsController {
   public async store({ request, response }: HttpContext) {
@@ -41,6 +42,7 @@ export default class ProductsController {
   public async index({ response }: HttpContext) {
     try {
       const products = await Product.query()
+        .whereNull('deletedAt')
         .select('id', 'name', 'description', 'price')
         .orderBy('id', 'asc')
 
@@ -55,7 +57,7 @@ export default class ProductsController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const product = await Product.find(params.id)
+      const product = await Product.query().where('id', params.id).andWhereNull('deletedAt').first()
 
       if (!product) {
         return response.status(404).json({
@@ -106,6 +108,29 @@ export default class ProductsController {
     } catch (error) {
       return response.status(400).json({
         message: 'Error updating product',
+        error: error.message,
+      })
+    }
+  }
+
+  public async delete({ params, response }: HttpContext) {
+    try {
+      const product = await Product.find(params.id)
+      if (!product) {
+        return response.status(404).json({ message: 'Product not found' })
+      }
+
+      if (product.deletedAt) {
+        return response.status(400).json({ message: 'Product has already been deleted' })
+      }
+
+      product.deletedAt = DateTime.now()
+      await product.save()
+
+      return response.status(200).json({ message: 'Product deleted successfully' })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Error deleting product',
         error: error.message,
       })
     }

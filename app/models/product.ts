@@ -16,6 +16,9 @@ export default class Product extends BaseModel {
   @column()
   declare price: number
 
+  @column.dateTime()
+  declare deletedAt: DateTime | null
+
   @hasMany(() => Sale)
   public sales!: HasMany<typeof Sale>
 
