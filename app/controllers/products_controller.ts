@@ -76,4 +76,38 @@ export default class ProductsController {
       })
     }
   }
+
+  public async update({ params, request, response }: HttpContext) {
+    try {
+      const updateProductSchema = schema.create({
+        name: schema.string.optional({}, [rules.maxLength(255)]),
+        description: schema.string.optional({}, [rules.maxLength(500)]),
+        price: schema.number.optional([rules.unsigned()]),
+      })
+
+      const data = await request.validate({ schema: updateProductSchema })
+
+      const product = await Product.find(params.id)
+      if (!product) {
+        return response.status(404).json({
+          message: 'Product not found',
+        })
+      }
+
+      product.merge(data)
+      await product.save()
+
+      return response.status(200).json({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+      })
+    } catch (error) {
+      return response.status(400).json({
+        message: 'Error updating product',
+        error: error.message,
+      })
+    }
+  }
 }
