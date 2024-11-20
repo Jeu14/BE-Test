@@ -3,10 +3,6 @@ import User from '#models/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import { rules, schema } from '@adonisjs/validator'
 
-// import hash from '@adonisjs/core/services/hash'
-// import jwt from 'jsonwebtoken'
-// import env from '#start/env'
-
 export default class AuthController {
   public async login({ request, response }: HttpContext) {
     const loginSchema = schema.create({
@@ -26,7 +22,5 @@ export default class AuthController {
     } catch (err) {
       return response.unauthorized()
     }
-
-    // return response.status(200).json(user)
   }
 }

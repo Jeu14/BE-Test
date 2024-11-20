@@ -3,8 +3,6 @@ import User from '#models/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import { rules, schema } from '@adonisjs/validator'
 
-// import hash from '@adonisjs/core/services/hash'
-
 export default class UsersController {
   public async store({ request, response }: HttpContext) {
     const userSchema = schema.create({
