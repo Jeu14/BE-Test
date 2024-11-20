@@ -10,6 +10,7 @@ export default class ProductsController {
       name: schema.string({}, [rules.required()]),
       description: schema.string({}, [rules.required()]),
       price: schema.number([rules.required(), rules.unsigned()]),
+      stock: schema.number([rules.required(), rules.unsigned()]),
     })
 
     const data = await request.validate({ schema: productSchema })
@@ -29,6 +30,7 @@ export default class ProductsController {
           name: product.name,
           description: product.description,
           price: product.price,
+          stock: product.stock,
         },
       })
     } catch (error) {
@@ -43,7 +45,7 @@ export default class ProductsController {
     try {
       const products = await Product.query()
         .whereNull('deletedAt')
-        .select('id', 'name', 'description', 'price')
+        .select('id', 'name', 'description', 'price', 'stock')
         .orderBy('name', 'asc')
 
       return response.status(200).json(products)
@@ -70,6 +72,7 @@ export default class ProductsController {
         name: product.name,
         description: product.description,
         price: product.price,
+        stock: product.stock,
       })
     } catch (error) {
       return response.status(500).json({
@@ -85,6 +88,7 @@ export default class ProductsController {
         name: schema.string.optional({}, [rules.maxLength(255)]),
         description: schema.string.optional({}, [rules.maxLength(500)]),
         price: schema.number.optional([rules.unsigned()]),
+        stock: schema.number.optional([rules.unsigned()]),
       })
 
       const data = await request.validate({ schema: updateProductSchema })
@@ -104,6 +108,7 @@ export default class ProductsController {
         name: product.name,
         description: product.description,
         price: product.price,
+        stock: product.stock,
       })
     } catch (error) {
       return response.status(400).json({

@@ -24,6 +24,13 @@ export default class SalesController {
         return response.status(404).json({ message: 'Product not found' })
       }
 
+      if (quantity > product.stock) {
+        return response.status(400).json({
+          message: 'Insufficient product stock',
+          availableStock: product.stock,
+        })
+      }
+
       const unit_price = product.price
       const totalPrice = unit_price * quantity
 
@@ -34,6 +41,9 @@ export default class SalesController {
         clientId: client_id,
         productId: product_id,
       })
+
+      product.stock -= quantity;
+      await product.save();''
 
       return response.status(201).json({
         message: 'Sale registered successfully!',
