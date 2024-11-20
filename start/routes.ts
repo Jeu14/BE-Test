@@ -1,4 +1,3 @@
-// const AuthMiddleware = () => import('#middleware/auth_middleware')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -8,14 +7,18 @@ const ClientsController = () => import('#controllers/clients_controller')
 const ProductsController = () => import('#controllers/products_controller')
 const SalesController = () => import('#controllers/sales_controller')
 
-router.post('signup', [UsersController, 'store'])
+router.post('/signup', [UsersController, 'store'])
 router.post('/login', [AuthController, 'login'])
 
-router.post('/client/store', [ClientsController, 'store'])
-router.get('/client/index', [ClientsController, 'index']).use(middleware.auth({ guards: ['api'] }))
-router.get('/client/show/:id', [ClientsController, 'show'])
-router.put('/client/update/:id', [ClientsController, 'update'])
-router.delete('/client/delete/:id', [ClientsController, 'delete'])
+router
+  .group(() => {
+    router.post('/client/store', [ClientsController, 'store'])
+    router.get('/client/index', [ClientsController, 'index'])
+    router.get('/client/show/:id', [ClientsController, 'show'])
+    router.put('/client/update/:id', [ClientsController, 'update'])
+    router.delete('/client/delete/:id', [ClientsController, 'delete'])
+  })
+  .use(middleware.auth({ guards: ['api'] }))
 
 router
   .group(() => {
@@ -27,4 +30,4 @@ router
   })
   .use(middleware.auth({ guards: ['api'] }))
 
-router.post('/sale/store', [SalesController, 'store'])
+router.post('/sale/store', [SalesController, 'store']).use(middleware.auth({ guards: ['api'] }))
