@@ -7,11 +7,10 @@ import Phone from '#models/phone'
 import Address from '#models/address'
 
 export default class ClientsController {
-  public async store({ request, response }: HttpContext) {
+  public async store({ request,auth, response }: HttpContext) {
     const validationSchema = schema.create({
       name: schema.string({}, [rules.required()]),
       cpf: schema.string({}, [rules.required(), rules.regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]),
-      user_id: schema.number([rules.required()]),
       phone: schema.string({}, [rules.required(), rules.mobile()]),
       address: schema.object().members({
         street: schema.string({}, [rules.required()]),
@@ -30,11 +29,13 @@ export default class ClientsController {
       return response.status(400).json({ message: 'Client CPF already exists' })
     }
 
+    const user = await auth.authenticate()
+
     try {
       const client = await Client.create({
         name: data.name,
         cpf: data.cpf,
-        userId: data.user_id,
+        userId: user.id,
       })
 
       await Phone.create({ number: data.phone, clientId: client.id })
