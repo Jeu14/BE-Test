@@ -5,13 +5,13 @@
 - Após baixar o projeto em sua máquina, abra o terminal e instale as dependências necessárias utilizando o seguinte comando:
 
 ```bash
-$ npm install
+ npm install
 ```
 
 - Em seguida, execute o comando abaixo para iniciar os contêineres definidos no arquivo docker-compose.yml. Esse comando irá configurar e iniciar o banco de dados MySQL em um contêiner, expondo a porta 3306 (certifique-se de que a porta não está sendo usada) e criando um volume persistente para os dados.
 
 ```bash
-$ docker compose up -d
+ docker compose up -d
 ```
 
 ### `ATENÇÃO: Não esqueça de remover a extensão (.example) do arquivo (.env). É nele que estão  as variavéis de ambiente necessárias para a aplicação se conectar ao banco de dados.`
@@ -19,13 +19,13 @@ $ docker compose up -d
 - Após isso, execute o seguinte comando para rodar as migrations e criar as entidades necessárias na base de dados:
 
 ```bash
-$ node ace migration:run
+ node ace migration:run
 ```
 
 ### Após seguir as etapas listadas acima, execute o seguinte comando para iniciar o servidor:
 
 ```bash
-$ node ace serve --watch
+ node ace serve --watch
 ```
 
 ## Logo abaixo estão alguns exemplos de requisições que podem ser feitas nas rotas presentes no projeto.
