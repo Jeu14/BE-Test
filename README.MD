@@ -258,8 +258,8 @@ $ node ace serve --watch
 // POST /product/store
 
 {
-  "name": "Produto 3",
-  "description": "Descrição do Produto 3",
+  "name": "Produto 1",
+  "description": "Descrição do Produto 1",
   "price": 24.90,
   "stock": 4
 }
@@ -312,6 +312,28 @@ $ node ace serve --watch
 
 ```javascript
 // GET /product/show/1
+// Sem conteúdo no corpo (body) da requisição
+```
+
+#### **Exemplo de resposta**
+
+```javascript
+// HTTP Status 200 / 201 / 204
+{
+	"id": 1,
+	"name": "Produto 1",
+	"description": "Descrição do Produto 1",
+	"price": "24.90",
+	"stock": 4
+}
+```
+
+### **Detalhar produto com filtro**
+
+#### **Exemplo de requisição**
+
+```javascript
+// GET /product/show/?month=11&year=2024
 // Sem conteúdo no corpo (body) da requisição
 ```
 
